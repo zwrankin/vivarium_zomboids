@@ -31,16 +31,20 @@ def run_simulation(n_steps, n_clusters=5):
     # Set parameters
     sim.configuration.flock.n_clusters = n_clusters
 
+    # pop = sim.get_population()
+    # pop['color'] = pop.infected.map({0: 'black', 1: 'red'})
+    # pops = [sim.get_population()]
+    # for i in range(0, n_steps):
+    #     sim.step()
+        # pop = sim.get_population()
+        # pop['color'] = pop.infected.map({0: 'black', 1: 'red'})
+        # pops.append(pop)
+
+    sim.take_steps(n_steps)
     pop = sim.get_population()
     pop['color'] = pop.infected.map({0: 'black', 1: 'red'})
-    pops = [sim.get_population()]
-    for i in range(0, n_steps):
-        sim.step()
-        pop = sim.get_population()
-        pop['color'] = pop.infected.map({0: 'black', 1: 'red'})
-        pops.append(pop)
 
-    return pops
+    return pop
 
 def plot_boids(pop):
     return [go.Scatter(x=pop.x,
@@ -62,11 +66,11 @@ app.layout = html.Div([
 html.P('Number of steps'),
         dcc.Slider(
             id='n-steps',
-            min=5,
+            min=0,
             max=10,
             step=1,
-            marks={i: str(i) for i in range(5, 10 + 1)},
-            value=5,
+            marks={i: str(i) for i in range(0, 10 + 1)},
+            value=0,
         ),
 html.P('Number of clusters'),
         dcc.Slider(
@@ -77,18 +81,54 @@ html.P('Number of clusters'),
             marks={i: str(i) for i in range(2, 8 + 1)},
             value=7,
         ),
+
+# Hidden div stores state of the simulation
+html.Div(id='sim', style={'display': 'none'}),
+
 dcc.Graph(id='boid-plot', animate=True),
 
 ])
 
-@app.callback(Output('boid-plot', 'figure'),
-              [Input('n-steps', 'value')])
-def run_boid_simulation(n_steps):
-    pops = run_simulation(n_steps)
-    print(len(pops))
-    frames = [{'data': plot_boids(pops[i])} for i in range(1, len(pops))]
+# @app.callback(dash.dependencies.Output('sim', 'children'),
+#               [dash.dependencies.Input('n-clusters', 'value')])
+# def initialize_simulation(n_clusters):
+#     components = [Population(), Location(), FlockKMeans(), Infection()]
+#     sim = setup_simulation(components)
+#     sim.configuration.flock.n_clusters = n_clusters
+#     return sim
 
-    return {'data': plot_boids(pops[0]),
+# @app.callback(dash.dependencies.Output('sim', 'children'),
+#               [dash.dependencies.Input('n-steps', 'value')])
+# def step_simulation(n_steps):
+#     return sim.step()
+
+# @app.callback(Output('boid-plot', 'figure'),
+#               [Input('sim', 'children')])
+# def plot_boids(sim):
+#     pop = sim.get_population()
+#     pop['color'] = pop.infected.map({0: 'black', 1: 'red'})
+#     return {'data': plot_boids(pop),
+#             'layout': {'xaxis': {'range': [0, 1000], 'autorange': False},
+#                        'yaxis': {'range': [0, 1000], 'autorange': False},
+#                        'title': 'Start Title',
+#                        'updatemenus': [{'type': 'buttons',
+#                                         'buttons': [{'label': 'Play',
+#                                                      'method': 'animate',
+#                                                      'args': [None]}]}]
+#                        },
+#             # 'frames': frames,
+#             }
+#
+
+@app.callback(Output('boid-plot', 'figure'),
+              [Input('n-clusters', 'value'),
+               Input('n-steps', 'value')])
+def run_boid_simulation(n_clusters, n_steps):
+    pop = run_simulation(n_steps)
+    # print(len(pops))
+    # frames = [{'data': plot_boids(pops[i])} for i in range(1, len(pops))]
+
+    return {'data': plot_boids(pop),
           'layout': {'xaxis': {'range': [0, 1000], 'autorange': False},
                      'yaxis': {'range': [0, 1000], 'autorange': False},
                      'title': 'Start Title',
@@ -98,7 +138,7 @@ def run_boid_simulation(n_steps):
                                                    'args': [None]}]}]
                     },
 
-            'frames': frames,
+            # 'frames': frames,
 
          }
 
