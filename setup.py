@@ -1,19 +1,10 @@
-import os
+from setuptools import find_packages, setup
 
-from setuptools import setup, find_packages
-
-
-if __name__ == "__main__":
-
-    setup(
-        name='vivarium_examples',
-        version='1.0',
-        description="Examples of simulations built with vivarium",
-        author='Zane Rankin',
-
-        package_dir={'': 'src'},
-        packages=find_packages(where='src'),
-        include_package_data=True,
-
-        install_requires=['vivarium', 'sklearn'],
+setup(
+    name='src',
+    packages=find_packages(),
+    version='0.1.0',
+    description='Using Vivarium microsimulation',
+    author='Zane Rankin',
+    license='MIT',
 )
