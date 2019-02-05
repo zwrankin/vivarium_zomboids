@@ -1,6 +1,7 @@
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
+from dash.dependencies import Input, Output
 import plotly.graph_objs as go
 from vivarium.interface import setup_simulation
 from src.population import Population
@@ -18,9 +19,9 @@ top_markdown_text = '''
 # Hello Vivarium
 '''
 
-components = [Population(), Location(), FlockKMeans(), Infection()]
-sim = setup_simulation(components)
-pop = sim.get_population()
+# components = [Population(), Location(), FlockKMeans(), Infection()]
+# sim = setup_simulation(components)
+# pop = sim.get_population()
 
 
 def run_simulation(n_steps, n_clusters=5):
@@ -58,9 +59,36 @@ app.layout = html.Div([
 
 # HEADER
  dcc.Markdown(children=top_markdown_text),
+html.P('Number of steps'),
+        dcc.Slider(
+            id='n-steps',
+            min=5,
+            max=10,
+            step=1,
+            marks={i: str(i) for i in range(5, 10 + 1)},
+            value=5,
+        ),
+html.P('Number of clusters'),
+        dcc.Slider(
+            id='n-clusters',
+            min=2,
+            max=8,
+            step=1,
+            marks={i: str(i) for i in range(2, 8 + 1)},
+            value=7,
+        ),
+dcc.Graph(id='boid-plot', animate=True),
 
-dcc.Graph(id='boid-plot',
-          figure={'data': plot_boids(pop),
+])
+
+@app.callback(Output('boid-plot', 'figure'),
+              [Input('n-steps', 'value')])
+def run_boid_simulation(n_steps):
+    pops = run_simulation(n_steps)
+    print(len(pops))
+    frames = [{'data': plot_boids(pops[i])} for i in range(1, len(pops))]
+
+    return {'data': plot_boids(pops[0]),
           'layout': {'xaxis': {'range': [0, 1000], 'autorange': False},
                      'yaxis': {'range': [0, 1000], 'autorange': False},
                      'title': 'Start Title',
@@ -70,12 +98,11 @@ dcc.Graph(id='boid-plot',
                                                    'args': [None]}]}]
                     },
 
-            # 'frames': frames,
+            'frames': frames,
 
          }
-),
 
-])
+
 
 
 if __name__ == '__main__':
